@@ -15,7 +15,7 @@ url_theme_escuro = dbc.themes.DARKLY
 template_claro = "minty"
 template_escuro = "darkly"
 
-df = pd.read_csv("C:\\Users\\gabri\\OneDrive\\Documentos\\Códigos\\Python\\DashBoard\\PokedexDefinitivo.csv")
+df = pd.read_csv("C:\\Caminho\\para\\o\\arquivo\\PokedexDefinitivo.csv")
 
 tipos_options = [{'label': x, 'value': x} for x in sorted(df['Type'].unique())]
 stats_columns = [col for col in df.columns if col not in ['Name', 'Type', 'Height', 'Weight']]
