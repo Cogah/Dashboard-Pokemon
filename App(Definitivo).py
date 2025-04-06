@@ -140,8 +140,11 @@ def update_bar_chart(tipo_escolhido, stat_choice, theme):
     template = template_claro if theme else template_escuro
     df_filtrado = df[df['Type'].isin(tipo_escolhido)]
     
+    df_media = df_filtrado.groupby('Type')[stat_choice].mean().reset_index()
+    df_media = df_media.sort_values(by=stat_choice, ascending=False)
+
     fig = px.bar(
-        df_filtrado.groupby('Type')[stat_choice].mean().reset_index(),
+        df_media,
         x='Type', 
         y=stat_choice,
         title=f'Média de {stat_choice} por Tipo',
@@ -152,14 +155,17 @@ def update_bar_chart(tipo_escolhido, stat_choice, theme):
     fig.update_layout(
         title_x=0.5,
         xaxis_title="Tipo de Pokémon",
-        yaxis_title=stat_choice
+        yaxis_title=stat_choice,
+        xaxis={'categoryorder': 'total descending'}
     )
     
-    contagem_por_tipo = df_filtrado['Type'].value_counts().reset_index()
-    contagem_por_tipo.columns = ['Type', 'Count']  # Renomear colunas
+    df_basicos = df_filtrado[df_filtrado['IsBasic'] == 'Yes']
+    contagem = df_basicos['Type'].value_counts().reset_index()
+    contagem.columns = ['Type', 'Count']
+    contagem = contagem.sort_values('Count', ascending=False)
 
     fig2 = px.bar(
-        contagem_por_tipo,
+        contagem,
         x='Type',
         y='Count',
         title='Número de Pokémon Básicos por Tipo',
@@ -167,11 +173,11 @@ def update_bar_chart(tipo_escolhido, stat_choice, theme):
         color='Type',
         text_auto=True
     )
-    
     fig2.update_layout(
-        title_x=0.5,
+        title_x= 0.5,
         xaxis_title="Tipo de Pokémon",
         yaxis_title="Quantidade de Básicos",
+        xaxis={'categoryorder': 'total descending'}
     )
     
     return fig, fig2
