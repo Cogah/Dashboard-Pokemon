@@ -38,7 +38,7 @@ app.layout = dbc.Container([
                 dbc.CardBody([
                     dcc.Dropdown(
                         id='tipo_escolha',
-                        value=[tipo['value'] for tipo in tipos_options[:3]],
+                        value=['normal', 'fire', 'water', 'electric', 'grass', 'ice', 'fighting', 'poison', 'ground', 'flying', 'psychic', 'bug', 'rock', 'ghost', 'dragon', 'dark', 'steel', 'fairy'],
                         multi=True,
                         options=tipos_options,
                         placeholder="Selecione tipos de Pokémon"
@@ -46,7 +46,7 @@ app.layout = dbc.Container([
                     html.Br(),
                     dcc.Dropdown(
                         id='stat_choice',
-                        value='HP',
+                        value='BST',
                         options=stats_options,
                         placeholder="Selecione uma estatística"
                     )
@@ -72,7 +72,7 @@ app.layout = dbc.Container([
                 dbc.CardBody([
                     dcc.Dropdown(
                         id='tipo_selecionado',
-                        value=df['Type'].unique()[0],
+                        value='normal',
                         options=tipos_options,
                         placeholder="Selecione um tipo de Pokémon"
                     ),
@@ -91,11 +91,14 @@ app.layout = dbc.Container([
     # GRÁFICOS PARA OS TIPOS INDIVIDUAIS
     dbc.Row([
         dbc.Col(dcc.Graph(id="grafico_ataque_defesa"), width=6, className="mb-4"),
-        dbc.Col(dcc.Graph(id="grafico_distribuicao"), width=6, className="mb-4"),
+        dbc.Col(dcc.Graph(id="grafico_distribuicao"), width=6, className="mb-4")
     ]),
     dbc.Row([
-        dbc.Col(dcc.Graph(id="grafico_spatk_spdef"), width=6, className="mb-4"),#GRÁFICO AINDA NÃO IMPLEMENTADO
-        dbc.Col(dcc.Graph(id="grafico_top10BST"), width=6, className="mb-4"),#GRÁFICO AINDA NÃO IMPLEMENTADO
+        dbc.Col(dcc.Graph(id="grafico_spatk_spdef"), width=6, className="mb-4"),
+        dbc.Col(dcc.Graph(id="grafico_top10BST"), width=6, className="mb-4"),
+    ]),
+    dbc.Row([
+        dbc.Col(dcc.Graph(id="grafico_proporcao_isBasic"), width=6, className="mb-4"),
     ]),
     
     # TABELA DOS POKÉMON
@@ -246,7 +249,7 @@ def update_graphs(tipo_selecionado, stat_selecionado, theme):
         x="Sp.Attack",
         y="Sp.Defense",
         text="Name",
-        title=f"Sp. Atk vs Sp. Def do tipo {tipo_selecionado}",
+        title=f"Sp. Atk vs Sp. Def - Tipo {tipo_selecionado}",
         labels={"Sp.Attack": "Ataque Especial", "Sp.Defense": "Defesa Especial"},
         template=template,
         hover_data=['id', 'Name']
@@ -254,10 +257,10 @@ def update_graphs(tipo_selecionado, stat_selecionado, theme):
     fig3.update_layout(title_x=0.5)
     
     fig4 = px.bar(
-        df_filtrado.sort_values(by='BST', ascending=True).head(10),
+        df_filtrado.sort_values(by='BST', ascending=False).head(10),
         x='BST', 
         y='Name',
-        title=f'Maiores BST do tipo {tipo_selecionado}',
+        title=f'Maiores BST - Tipo {tipo_selecionado}',
         template=template,
         color='Type',
         text_auto='.2f'
@@ -271,6 +274,30 @@ def update_graphs(tipo_selecionado, stat_selecionado, theme):
     )
     
     return fig1, fig2,fig3, fig4
+
+
+@app.callback(
+    Output('grafico_proporcao_isBasic', 'figure'),
+    Input('tipo_selecionado', 'value'),
+    Input(ThemeSwitchAIO.ids.switch('theme'), 'value')
+)
+def update_pie_plot(tipo_selecionado, theme):
+    template = template_claro if theme else template_escuro
+    df_filtrado = df[df['Type'] == tipo_selecionado]
+    
+    fig = px.pie(
+        df_filtrado,
+        names='IsBasic',
+        title=f'Proporção de Pokémon Básicos e Não Básicos - Tipo {tipo_selecionado}',
+        template=template,
+        color='IsBasic',
+    )
+    fig.update_layout(
+        title_x=0.5,
+        showlegend=True,
+        legend_title_text='Pokemon é básico?',
+    )
+    return fig
 
 
 
